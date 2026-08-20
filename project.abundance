@@ -1,13 +1,87 @@
 {
-    "atomType": "Molecule",
-    "x": 0,
-    "y": 0,
-    "uniqueID": "id-121",
-    "name": "face.normalsAt",
-    "topLevel": true,
-    "allAtoms": [],
-    "allConnectors": [],
-    "unitsKey": "Unitless",
-    "fileTypeVersion": 1,
-    "filetypeVersion": 1
+  "atomType": "Molecule",
+  "x": 0,
+  "y": 0,
+  "uniqueID": "id-121",
+  "name": "face.normalsAt",
+  "ioValues": [
+    {
+      "name": "faces",
+      "ioValue": "__GEOMETRY_INPUT__"
+    },
+    {
+      "name": "points",
+      "ioValue": "__GEOMETRY_INPUT__"
+    }
+  ],
+  "topLevel": true,
+  "allAtoms": [
+    {
+      "atomType": "Output",
+      "x": 0.98,
+      "y": 0.5,
+      "uniqueID": "id-122",
+      "ioValues": [
+        {
+          "name": "number or geometry",
+          "ioValue": "__GEOMETRY_INPUT__"
+        }
+      ]
+    },
+    {
+      "atomType": "Code",
+      "x": 0.4231770833333333,
+      "y": 0.5942857142857143,
+      "uniqueID": "id-124",
+      "ioValues": [
+        {
+          "name": "basis",
+          "ioValue": "__GEOMETRY_INPUT__"
+        },
+        {
+          "name": "points",
+          "ioValue": "__GEOMETRY_INPUT__"
+        }
+      ],
+      "interpreterVersion": 1,
+      "code": "// face.normalsFrom\nfunction run(basis: Assembly, points: Assembly) {\n  let selectedFaces = basis.getSelectedFaces().filter((f) => f != null);\n  console.log(selectedFaces.length)\n  if (!selectedFaces || selectedFaces.length == 0) {\n    // get faces directly\n    basis.onLeafs((leaf) => {\n      if (leaf.geometry instanceof replicad.Face) {\n        selectedFaces.push(leaf.geometry)\n      } else if (leaf.is3D()) {\n        selectedFaces.push(...leaf.geometry.faces)\n      }\n      return leaf;\n    })\n  }\n  console.log(selectedFaces.length)\n  let res = undefined;\n  const result = points.onLeafs((point) => {\n    if (point.isPoint()) {\n      const dists = selectedFaces.map((face) => {\n        return projectVertexOntoFace(face, point.geometry)\n      })\n      dists.sort((a, b) => a[0] - b[0])\n      console.log(`selected face index: ${selectedFaces.findIndex((f) => f.isSame(dists[0][2]))} at dist ${dists[0][0]}. uv: ${dists[0][1]}`)\n      point.geometry = replicad.makeVertex(dists[0][2].normalAt(point.geometry.asTuple()).normalize())\n    }\n    return point;\n  })\n  return result;\n\n}\n\nfunction projectVertexOntoFace(\n  face: replicad.Face,\n  vertex: replicad.Vertex,\n): [number, [number, number], replicad.Face] {\n  const asVec = new replicad.Vector(vertex.asTuple())\n  const uv = face.uvCoordinates(asVec)\n  const res = face.pointOnSurface(uv[0], uv[1]);\n  return [res.add(asVec.multiply(-1)).Length, uv, face]\n}",
+      "compiledCode": "\"use strict\";\n// face.normalsFrom\nfunction run(basis, points) {\n    let selectedFaces = basis.getSelectedFaces().filter((f) => f != null);\n    console.log(selectedFaces.length);\n    if (!selectedFaces || selectedFaces.length == 0) {\n        // get faces directly\n        basis.onLeafs((leaf) => {\n            if (leaf.geometry instanceof replicad.Face) {\n                selectedFaces.push(leaf.geometry);\n            }\n            else if (leaf.is3D()) {\n                selectedFaces.push(...leaf.geometry.faces);\n            }\n            return leaf;\n        });\n    }\n    console.log(selectedFaces.length);\n    let res = undefined;\n    const result = points.onLeafs((point) => {\n        if (point.isPoint()) {\n            const dists = selectedFaces.map((face) => {\n                return projectVertexOntoFace(face, point.geometry);\n            });\n            dists.sort((a, b) => a[0] - b[0]);\n            console.log(`selected face index: ${selectedFaces.findIndex((f) => f.isSame(dists[0][2]))} at dist ${dists[0][0]}. uv: ${dists[0][1]}`);\n            point.geometry = replicad.makeVertex(dists[0][2].normalAt(point.geometry.asTuple()).normalize());\n        }\n        return point;\n    });\n    return result;\n}\nfunction projectVertexOntoFace(face, vertex) {\n    const asVec = new replicad.Vector(vertex.asTuple());\n    const uv = face.uvCoordinates(asVec);\n    const res = face.pointOnSurface(uv[0], uv[1]);\n    return [res.add(asVec.multiply(-1)).Length, uv, face];\n}\n"
+    },
+    {
+      "atomType": "Input",
+      "x": 0.0231,
+      "y": 0.3,
+      "uniqueID": "id-135",
+      "name": "faces",
+      "type": "geometry"
+    },
+    {
+      "atomType": "Input",
+      "x": 0.0231,
+      "y": 0.5,
+      "uniqueID": "id-138",
+      "name": "points",
+      "type": "geometry"
+    }
+  ],
+  "allConnectors": [
+    {
+      "ap2Name": "number or geometry",
+      "ap1ID": "id-124",
+      "ap2ID": "id-122"
+    },
+    {
+      "ap2Name": "basis",
+      "ap1ID": "id-135",
+      "ap2ID": "id-124"
+    },
+    {
+      "ap2Name": "points",
+      "ap1ID": "id-138",
+      "ap2ID": "id-124"
+    }
+  ],
+  "unitsKey": "Unitless",
+  "fileTypeVersion": 1,
+  "filetypeVersion": 1
 }
